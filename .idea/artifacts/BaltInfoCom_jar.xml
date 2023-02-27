@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="BaltInfoCom:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/BaltInfoCom_jar</output-path>
+    <root id="archive" name="BaltInfoCom.jar">
+      <element id="module-output" name="BaltInfoCom" />
+    </root>
+  </artifact>
+</component>
