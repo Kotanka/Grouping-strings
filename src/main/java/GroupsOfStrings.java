@@ -13,7 +13,7 @@ public class GroupsOfStrings {
         return data;
     }
 
-    public static boolean checkString(String[] strs) {
+    public static boolean check_string(String[] strs) {
         for (String s : strs) {
             String[] tmp = s.split("\"");
             if (tmp.length > 2)
@@ -26,7 +26,7 @@ public class GroupsOfStrings {
         List<String[]> res = new ArrayList<>(strings.size());
         for (String s : strings) {
             String[] elem = s.split(";");
-            if (checkString(elem))
+            if (check_string(elem))
                 res.add(elem);
         }
         return res;
@@ -47,7 +47,7 @@ public class GroupsOfStrings {
         }
     }
 
-    public static HashMap<Integer, HashSet<Integer>> grouping2(List<String[]> lines, int max_line) {
+    public static HashMap<Integer, HashSet<Integer>> grouping(List<String[]> lines, int max_line) {
         HashMap<Integer, HashSet<Integer>> groups = new HashMap<>();
         HashMap<Integer, Integer> strings_with_group = new HashMap<>();
         HashMap<String, Integer> tmp = new HashMap<>();
@@ -149,7 +149,7 @@ public class GroupsOfStrings {
 
         int max_len = max_lenght(strings);
 
-        HashMap<Integer, HashSet<Integer>> groups = grouping2(strings, max_len);
+        HashMap<Integer, HashSet<Integer>> groups = grouping(strings, max_len);
 
         List<String> full_lines = make_full_lines(strings);
 
