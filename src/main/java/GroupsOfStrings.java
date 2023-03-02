@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.*;
+import java.util.List;
 
 public class GroupsOfStrings {
     public static List<String[]> read_strings(String file_name) throws IOException {
@@ -9,11 +10,12 @@ public class GroupsOfStrings {
         while ((line = reader.readLine()) != null) {
             strings.add(line);
         }
-        List<String[]> data = format_data(strings);
-        return data;
+        return format_data(strings);
     }
 
     public static boolean check_string(String[] strs) {
+        if (strs.length == 0)
+            return false;
         for (String s : strs) {
             String[] tmp = s.split("\"");
             if (tmp.length > 2)
@@ -32,7 +34,7 @@ public class GroupsOfStrings {
         return res;
     }
 
-    public static int max_lenght(List<String[]> data) {
+    public static int max_length(List<String[]> data) {
         int max = 0;
         for (String[] strings : data) {
             if (strings.length > max)
@@ -41,34 +43,38 @@ public class GroupsOfStrings {
         return max;
     }
 
-    public static void change_group(HashMap<Integer, Integer> strings, HashSet<Integer> strings_index, int group) {
+    public static void change_group(int[] strings, HashSet<Integer> strings_index, int group) {
         for (int str : strings_index) {
-            strings.put(str, group);
+            strings[str] = group;
         }
     }
 
     public static HashMap<Integer, HashSet<Integer>> grouping(List<String[]> lines, int max_line) {
         HashMap<Integer, HashSet<Integer>> groups = new HashMap<>();
-        HashMap<Integer, Integer> strings_with_group = new HashMap<>();
+        int[] strings_with_group = new int[lines.size()];
         HashMap<String, Integer> tmp = new HashMap<>();
 
-        for (int i = 0; i < lines.size(); i++) {
-            HashSet<Integer> set = new HashSet<>();
-            set.add(i);
-            groups.put(i, set);
-            strings_with_group.put(i, i);
-        }
+        for (int i = 0; i < strings_with_group.length; i++)
+            strings_with_group[i] = i;
 
         for (int i = 0; i < max_line; i++) {
-            for (int j = 0; j < lines.size(); j++) {
-                if (lines.get(j).length > i && !lines.get(j)[i].equals("\"\"")) {
+            for (int j = 0; j < lines.size(); j++)  {
+                if (lines.get(j).length > i && !(lines.get(j)[i].equals("\"\"") || lines.get(j)[i].equals(""))) {
                     if (tmp.containsKey(lines.get(j)[i])) {
                         int str_num = tmp.get(lines.get(j)[i]);
-                        int target_group = strings_with_group.get(str_num);
-                        int cur_group = strings_with_group.get(j);
+                        int target_group = strings_with_group[str_num];
+                        int cur_group = strings_with_group[j];
                         if (cur_group != target_group) {
                             HashSet<Integer> target_set = groups.get(target_group);
                             HashSet<Integer> cur_set = groups.get(cur_group);
+                            if (target_set == null) {
+                                target_set = new HashSet<>();
+                                target_set.add(str_num);
+                            }
+                            if (cur_set == null) {
+                                cur_set = new HashSet<>();
+                                cur_set.add(j);
+                            }
                             target_set.addAll(cur_set);
                             groups.put(target_group, target_set);
                             groups.remove(cur_group);
@@ -82,6 +88,13 @@ public class GroupsOfStrings {
             tmp.clear();
         }
         return groups;
+    }
+
+    public static void strings_without_groups(HashMap<Integer, HashSet<Integer>> groups, boolean[] res) {
+        for (int key : groups.keySet()) {
+            for (int group : groups.get(key))
+                res[group] = true;
+        }
     }
 
     public static List<String> make_full_lines(List<String[]> strings) {
@@ -107,9 +120,7 @@ public class GroupsOfStrings {
                 for (int str_index : groups.get(key)) {
                     unic_strings.put(full_lines.get(str_index), str_index);
                 }
-                HashSet<Integer> set = new HashSet<>();
-                for (int value : unic_strings.values())
-                    set.add(value);
+                HashSet<Integer> set = new HashSet<>(unic_strings.values());
                 groups.put(key, set);
             }
         }
@@ -140,16 +151,31 @@ public class GroupsOfStrings {
         writer.close();
     }
 
+    public static void write_single_strings(String file_name, boolean[] in_groups, List<String> lines, int count) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(file_name, true));
+        for (int i = 0; i < in_groups.length; i++) {
+            if (!in_groups[i]) {
+                writer.write("Group " + count + "\n");
+                writer.write(lines.get(i));
+                writer.write("\n\n");
+                count++;
+            }
+        }
+        writer.close();
+    }
+
     public static void main(String[] args) throws IOException {
 //        long startTime = System.nanoTime();
 
         String in = args[0];
-
         List<String[]> strings = read_strings(in);
 
-        int max_len = max_lenght(strings);
+        int max_len = max_length(strings);
 
         HashMap<Integer, HashSet<Integer>> groups = grouping(strings, max_len);
+
+        boolean[] strings_in_groups = new boolean[strings.size()];
+        strings_without_groups(groups, strings_in_groups);
 
         List<String> full_lines = make_full_lines(strings);
 
@@ -164,6 +190,7 @@ public class GroupsOfStrings {
 
         String out = "out.txt";
         write_groups(out, values, full_lines, count);
+        write_single_strings(out, strings_in_groups, full_lines, count + 1);
 
 //        long endTime = System.nanoTime();
 //        System.out.println("Total: " + (endTime - startTime) / 1000000000.0);
